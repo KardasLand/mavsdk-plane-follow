@@ -20,6 +20,7 @@
 #include <future>
 #include "plane.h"
 #include "iostream"
+
 using namespace std;
 
 
@@ -33,12 +34,11 @@ plane::plane(System *sharedPtr, bool isMain)
     init();
 }
 
-
 /**
  * Debug function to print the plane information
  * @return void
  */
-void plane::debug() const{
+void plane::debug() const {
     cout << "Plane ID " << sysid << " has been loaded!" << endl;
     cout << "Information: " << endl;
     cout << "Latitude: " << latitude << " Longitude: " << longitude << " Altitude: " << altitude << endl;
@@ -57,7 +57,7 @@ void plane::init() {
     telemetry.set_rate_position(1.0);
     telemetry.subscribe_position([](Telemetry::Position position) {
         cout << "Vehicle is at: " << position.latitude_deg << ", " << position.longitude_deg
-                  << " degrees\n";
+             << " degrees\n";
     });
     Telemetry::GpsGlobalOrigin origin = telemetry.get_gps_global_origin().second;
     latitude = origin.latitude_deg;
@@ -77,13 +77,14 @@ void plane::init() {
  * Check if the system is ready
  * @return void
  */
-void plane::checkHealth() {
+void plane::checkHealth() const {
     while (!telemetry.health_all_ok()) {
         cout << "Waiting for system to be ready\n";
         sleep_for(seconds(1));
     }
     cout << "System is ready\n";
 }
+
 /**
  * Takeoff the plane
  * @return int 0 if success, 1 if failed
@@ -116,7 +117,7 @@ int plane::takeoff() {
  * Arm the plane
  * @return int 0 if success, 1 if failed
  */
-int plane::arm() {
+int plane::arm() const {
     const auto arm_result = action.arm();
     if (arm_result != Action::Result::Success) {
         cerr << "Arming failed: " << arm_result << '\n';
@@ -125,6 +126,7 @@ int plane::arm() {
     cout << "Armed\n";
     return 0;
 }
+
 /**
  * Offset the plane in global coordinates
  * @param latOff latitude offset
@@ -133,7 +135,7 @@ int plane::arm() {
  * @param yawOff yaw offset
  * @return bool true if success
  */
-bool plane::offGlobal(double latOff, double longOff, double altOff, double yawOff) {
+bool plane::offGlobal(double latOff, double longOff, double altOff, double yawOff) const {
     cout << "Reading home position in Global coordinates\n";
 
     const auto res_and_gps_origin = telemetry.get_gps_global_origin();
@@ -182,7 +184,7 @@ bool plane::offGlobal(double latOff, double longOff, double altOff, double yawOf
  * Land the plane
  * @return 0 if success, 1 if failed
  */
-int plane::land() {
+int plane::land() const {
     const auto land_result = action.land();
     if (land_result != Action::Result::Success) {
         cerr << "Landing failed: " << land_result << '\n';
@@ -201,7 +203,7 @@ int plane::land() {
  * Check if the plane is in air
  * @return bool
  */
-bool plane::isInAir() {
+bool plane::isInAir() const {
     return telemetry.in_air();
 }
 
@@ -215,8 +217,8 @@ int plane::startFollowing() {
     telemetry.subscribe_flight_mode([&](Telemetry::FlightMode flight_mode) {
         const FollowMe::TargetLocation last_location = followMe.get_last_location();
         cout << "[FlightMode: " << flight_mode
-                  << "] Target is at: " << last_location.latitude_deg << ", "
-                  << last_location.longitude_deg << " degrees.\n";
+             << "] Target is at: " << last_location.latitude_deg << ", "
+             << last_location.longitude_deg << " degrees.\n";
     });
     FollowMe::Config config;
     config.follow_height_m = 12.f;  // Minimum height
@@ -247,11 +249,11 @@ int plane::startFollowing() {
  * @param alt altitude
  * @return int
  */
-int plane::follow(double lat, double lon, float alt = 0.0f) {
+int plane::follow(double lat, double lon, float alt = 0.0f) const {
     //auto follow_me = FollowMe{*system};
     cout << "Main plane location: " << latitude << " " << longitude << " " << altitude << "\n";
     cout << "Target plane location: " << lat << " " << lon << " " << alt << "\n";
-    followMe.set_target_location({ lat, lon, alt, 0.f, 0.f, 0.f });
+    followMe.set_target_location({lat, lon, alt, 0.f, 0.f, 0.f});
     return 0;
 }
 
@@ -259,7 +261,7 @@ int plane::follow(double lat, double lon, float alt = 0.0f) {
  * Stop following the plane
  * @return int
  */
-int plane::stopFollowing() {
+int plane::stopFollowing() const {
     //auto follow_me = FollowMe{*system};
     // Stop following
     FollowMe::Result follow_me_result = followMe.stop();
@@ -270,52 +272,5 @@ int plane::stopFollowing() {
     return 0;
 }
 
-int plane::getSysid() const {
-    return sysid;
-}
-
-void plane::setSysid(int sysid) {
-    plane::sysid = sysid;
-}
-
-int plane::getTeamid() const {
-    return teamid;
-}
-
-void plane::setTeamid(int teamid) {
-    plane::teamid = teamid;
-}
-
-int plane::getYaw() const {
-    return yaw;
-}
-
-void plane::setYaw(int yaw) {
-    plane::yaw = yaw;
-}
-
-double plane::getLatitude() const {
-    return latitude;
-}
-
-void plane::setLatitude(double latitude) {
-    plane::latitude = latitude;
-}
-
-double plane::getAltitude() const {
-    return altitude;
-}
-
-void plane::setAltitude(double altitude) {
-    plane::altitude = altitude;
-}
-
-double plane::getLongitude() const {
-    return longitude;
-}
-
-void plane::setLongitude(double longitude) {
-    plane::longitude = longitude;
-}
 
 

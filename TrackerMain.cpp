@@ -23,12 +23,18 @@
 #include <plugins/offboard/offboard.h>
 #include <plugins/telemetry/telemetry.h>
 #include "TrackerMain.h"
+
 using namespace std;
 using namespace mavsdk;
 
-void TrackerMain::initialize() {
+/**
+ * Initialize the tracker
+ * @param address string IP address of the udp connection
+ * @param port int Port number of the udp connection
+ */
+void TrackerMain::initialize(const string &address, int port = 3131) {
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};
-    ConnectionResult connection_result = mavsdk.add_udp_connection("localhost", 3131);
+    ConnectionResult connection_result = mavsdk.add_udp_connection(address, port);
 
     bool overrideSafety = true;
 
@@ -43,44 +49,51 @@ void TrackerMain::initialize() {
         return;
     }
 
-    // Instantiate plugins.
-    auto action = Action{system.value()};
-    auto offboard = Offboard{system.value()};
-    auto telemetry = Telemetry{system.value()};
-    //shared_ptr<System> a = *system;
+    // shared pointers are kinda weird
     std::vector<std::shared_ptr<System>> systems = mavsdk.systems();
-
-    for (const auto& system_ptr : systems) {
+    for (const auto &system_ptr: systems) {
         auto a = &system_ptr;
-        auto* adas = new plane(a->get(), system.value()->get_system_id() == system_ptr->get_system_id());
+        auto *adas = new plane(a->get(), system.value()->get_system_id() == system_ptr->get_system_id());
         m_planeList.push_back(adas);
     }
 
-    plane* mainPlane = findMainPlane();
-    if(mainPlane == nullptr){
-        cout << "Main plane not found!" << endl;
+    plane *mainPlane = findMainPlane();
+    if (mainPlane == nullptr) {
+        cout << "Main plane could not be found!" << endl;
         return;
     }
 
-
+    // Check the health of the plane
+    // this is normally done in real life regardless of override safety
+    // But we are in a simulation, so we can override the safety.
+    // this is useful for testing, don't need to calibrate the plane every time
     if (!overrideSafety) {
         mainPlane->checkHealth();
     }
-    if (!mainPlane->isInAir()){
+    if (!mainPlane->isInAir()) {
         mainPlane->arm();
         mainPlane->takeoff();
     }
 
     mainPlane->takeoff();
+
+    // little bir unnecessary but it's fine
     sleep_for(seconds(15));
 
-    plane* targetPlane = m_planeList.at(1);
+    plane *targetPlane = m_planeList.at(1);
     cout << "Following...\n";
+
+    // Start the follow me plugin
     mainPlane->startFollowing();
 
     //TODO this will be better later
+    // Follow the target plane for 30 seconds
+    // This is the broken part of the code that needs to be fixed later.
+    // Otherwise, the code is working fine.
+    // Other functions such as land and takeoff etc. are working fine.
+    // But follow me part of the application is still in development.
     int i = 30;
-    while(i >= 0){
+    while (i >= 0) {
         cout << "Following... " << i << endl;
         mainPlane->follow(targetPlane->getLatitude(), targetPlane->getLongitude(), (float) targetPlane->getAltitude());
         sleep_for(seconds(5));
@@ -91,15 +104,18 @@ void TrackerMain::initialize() {
 
     sleep_for(seconds(3));
     std::cout << "Finished...\n";
+
+    // You can land the plane if you want.
+    // mainPlane->land();
 }
 
 /**
  * Find the main plane
- * @return plane*
+ * @return plane* the main plane
  */
 plane *TrackerMain::findMainPlane() {
-    for(plane* plane : m_planeList){
-        if(plane->isMain){
+    for (plane *plane: m_planeList) {
+        if (plane->isMainPlane()) {
             return plane;
         }
     }

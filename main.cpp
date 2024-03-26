@@ -15,8 +15,20 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TrackerMain.h"
+
 int main() {
+
+    /* TODO
+     *  Needing to fix & implement the following functionalities:
+     *  - Follow me functionality
+     *  - Offboard control
+     *  - Inverse the int functions to return a bool
+     */
+
     TrackerMain trackerMain;
-    trackerMain.initialize();
+    // Initialize the tracker
+    int port = 3131;
+    string ip = "localhost";
+    trackerMain.initialize(ip, port);
     return 0;
 }

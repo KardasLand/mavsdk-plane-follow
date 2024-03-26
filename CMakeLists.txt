@@ -16,5 +16,5 @@ add_executable(tracking main.cpp
 find_package(MAVSDK REQUIRED)
 
 target_link_libraries(tracking
-    MAVSDK::mavsdk
+        MAVSDK::mavsdk
 )

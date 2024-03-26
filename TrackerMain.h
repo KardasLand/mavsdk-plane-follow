@@ -26,13 +26,16 @@
 
 class TrackerMain {
 public:
-    void initialize();
-    std::vector<plane*> planeList() {
+    void initialize(const string &address, int i);
+
+    std::vector<plane *> planeList() {
         return m_planeList;
     }
-    plane* findMainPlane();
+
+    plane *findMainPlane();
+
 private:
-    std::vector<plane*> m_planeList;
+    std::vector<plane *> m_planeList;
 };
 
 

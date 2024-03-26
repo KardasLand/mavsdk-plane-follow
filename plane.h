@@ -31,58 +31,64 @@ using namespace std;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
+
 class plane {
 public:
     plane(System *sharedPtr, bool isMain);
-    bool offGlobal(double latOff, double longOff, double altOff, double yawOff);
-    void checkHealth();
-    int arm();
+
+    [[nodiscard]] bool offGlobal(double latOff, double longOff, double altOff, double yawOff) const;
+
+    void checkHealth() const;
+
+    int arm() const;
+
     int takeoff();
-    int land();
+
+    [[nodiscard]] int land() const;
+
     int startFollowing();
-    int follow(double lat, double lon, float alt);
-    int stopFollowing();
-    bool isInAir();
+
+    int follow(double lat, double lon, float alt) const;
+
+    int stopFollowing() const;
+
+    bool isInAir() const;
+
+    [[nodiscard]] double getLatitude() const {
+        return latitude;
+    };
+
+    [[nodiscard]] double getAltitude() const {
+        return altitude;
+    };
+
+    [[nodiscard]] double getLongitude() const {
+        return longitude;
+    };
+
+    void debug() const;
+
+    [[nodiscard]] bool isMainPlane() const {
+        return isMain;
+    };
+
+
+private:
+    int sysid{};
+    [[maybe_unused]] int teamID{};
+    int yaw{};
+    double latitude{};
+    double altitude{};
+    double longitude{};
+
+    void init();
+
     bool isMain;
     System *system;
     Telemetry telemetry{*system};
     Action action{*system};
     Offboard offboard{*system};
     FollowMe followMe{*system};
-private:
-    int sysid;
-    int teamid;
-    int yaw;
-    double latitude;
-    double altitude;
-    double longitude;
-    void init();
-public:
-    int getSysid() const;
-
-    void setSysid(int sysid);
-
-    int getTeamid() const;
-
-    void setTeamid(int teamid);
-
-    int getYaw() const;
-
-    void setYaw(int yaw);
-
-    double getLatitude() const;
-
-    void setLatitude(double latitude);
-
-    double getAltitude() const;
-
-    void setAltitude(double altitude);
-
-    double getLongitude() const;
-
-    void setLongitude(double longitude);
-
-    void debug() const;
 };
 
 
