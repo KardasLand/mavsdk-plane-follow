@@ -19,10 +19,7 @@
 int main() {
 
     /* TODO
-     *  Needing to fix & implement the following functionalities:
-     *  - Follow me functionality
-     *  - Offboard control
-     *  - Inverse the int functions to return a bool
+     *
      */
 
     TrackerMain trackerMain;

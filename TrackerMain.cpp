@@ -20,15 +20,15 @@
 #include "mavsdk.h"
 #include <iostream>
 #include <plugins/action/action.h>
-#include <plugins/offboard/offboard.h>
-#include <plugins/telemetry/telemetry.h>
 #include "TrackerMain.h"
+#include "cmath"
+#include "Teknofest.h"
 
 using namespace std;
 using namespace mavsdk;
 
 /**
- * Initialize the tracker
+ * @brief Initialize the tracker
  * @param address string IP address of the udp connection
  * @param port int Port number of the udp connection
  */
@@ -67,40 +67,36 @@ void TrackerMain::initialize(const string &address, int port = 3131) {
     // this is normally done in real life regardless of override safety
     // But we are in a simulation, so we can override the safety.
     // this is useful for testing, don't need to calibrate the plane every time
-    if (!overrideSafety) {
-        mainPlane->checkHealth();
-    }
-    if (!mainPlane->isInAir()) {
-        mainPlane->arm();
-        mainPlane->takeoff();
-    }
-
-    mainPlane->takeoff();
-
+    //if (!overrideSafety) {
+    //    mainPlane->checkHealth();
+    //}
+    //if (!mainPlane->isInAir()) {
+    //    mainPlane->arm();
+    //    mainPlane->takeoff();
+    //}
     // little bir unnecessary but it's fine
-    sleep_for(seconds(15));
+    sleep_for(seconds(5));
 
     plane *targetPlane = m_planeList.at(1);
     cout << "Following...\n";
 
-    // Start the follow me plugin
-    mainPlane->startFollowing();
 
-    //TODO this will be better later
-    // Follow the target plane for 30 seconds
-    // This is the broken part of the code that needs to be fixed later.
-    // Otherwise, the code is working fine.
-    // Other functions such as land and takeoff etc. are working fine.
-    // But follow me part of the application is still in development.
-    int i = 30;
-    while (i >= 0) {
-        cout << "Following... " << i << endl;
-        mainPlane->follow(targetPlane->getLatitude(), targetPlane->getLongitude(), (float) targetPlane->getAltitude());
-        sleep_for(seconds(5));
-        i--;
-    }
+    mainPlane->startOffboard();
 
-    mainPlane->stopFollowing();
+    cout << "Before Calling Follow\n";
+    cout << mainPlane->getAltitude() << endl;
+    cout << mainPlane->getLatitude() << endl;
+    cout << mainPlane->getLongitude() << endl;
+
+    //mainPlane->offGlobal(0.001,0.001,0.0,0.0);
+    //Teknofest::followPlane(mainPlane, targetPlane);
+
+    cout << "After Calling Follow\n";
+    cout << mainPlane->getAltitude() << endl;
+    cout << mainPlane->getLatitude() << endl;
+    cout << mainPlane->getLongitude() << endl;
+
+    mainPlane->stopOffboard();
 
     sleep_for(seconds(3));
     std::cout << "Finished...\n";

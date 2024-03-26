@@ -25,6 +25,9 @@
 #include <thread>
 #include <mavsdk/plugins/follow_me/follow_me.h>
 #include "mavsdk.h"
+#include "mavsdk/plugins/action/action.h"
+#include "mavsdk/plugins/offboard/offboard.h"
+#include "mavsdk/plugins/telemetry/telemetry.h"
 
 using namespace mavsdk;
 using namespace std;
@@ -36,33 +39,36 @@ class plane {
 public:
     plane(System *sharedPtr, bool isMain);
 
-    [[nodiscard]] bool offGlobal(double latOff, double longOff, double altOff, double yawOff) const;
+    bool offGlobal(double latOff, double longOff, double altOff, double yawOff) const;
+    bool startOffboard();
+    bool stopOffboard();
 
     void checkHealth() const;
 
-    int arm() const;
+    bool arm() const;
 
-    int takeoff();
+    bool takeoff();
 
-    [[nodiscard]] int land() const;
+    [[nodiscard]] bool land() const;
 
-    int startFollowing();
+    bool startFollowing();
 
-    int follow(double lat, double lon, float alt) const;
+    void follow(double lat, double lon, float alt) const;
 
-    int stopFollowing() const;
+    bool stopFollowing() const;
 
     bool isInAir() const;
 
-    [[nodiscard]] double getLatitude() const {
+    double getLatitude() const {
         return latitude;
     };
 
-    [[nodiscard]] double getAltitude() const {
+    double getAltitude() const {
         return altitude;
     };
 
-    [[nodiscard]] double getLongitude() const {
+    double getAirSpeed() const;
+    double getLongitude() const {
         return longitude;
     };
 
@@ -71,7 +77,16 @@ public:
     [[nodiscard]] bool isMainPlane() const {
         return isMain;
     };
+    System *system;
+    Telemetry telemetry{*system};
 
+    const Telemetry &getTelemetry() const {
+        return telemetry;
+    }
+
+    Action action{*system};
+    Offboard offboard{*system};
+    FollowMe followMe{*system};
 
 private:
     int sysid{};
@@ -84,11 +99,7 @@ private:
     void init();
 
     bool isMain;
-    System *system;
-    Telemetry telemetry{*system};
-    Action action{*system};
-    Offboard offboard{*system};
-    FollowMe followMe{*system};
+
 };
 
 
