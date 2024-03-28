@@ -11,7 +11,9 @@ add_executable(tracking main.cpp
         plane.h
         TrackerMain.cpp
         TrackerMain.h
-        referenceFiles/b.cpp)
+        referenceFiles/b.cpp
+        Teknofest.cpp
+        Teknofest.h)
 
 find_package(MAVSDK REQUIRED)
 

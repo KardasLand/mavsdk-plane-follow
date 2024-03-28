@@ -17,12 +17,13 @@
 #include <plugins/action/action.h>
 #include <plugins/offboard/offboard.h>
 #include <plugins/telemetry/telemetry.h>
+#include <mavsdk/plugins/camera/camera.h>
+#include <mavsdk/plugins/info/info.h>
 #include <future>
 #include "plane.h"
 #include "iostream"
 
 using namespace std;
-
 
 /**
  * Constructor for the plane object
@@ -36,9 +37,20 @@ plane::plane(System *sharedPtr, bool isMain)
 
 /**
  * Debug function to print the plane information
+ * @param detailed bool to check if the information is detailed
+ * @default detailed false
  * @return void
  */
-void plane::debug() const {
+void plane::debug(bool detailed = false) const {
+    if(detailed){
+        // Get the system information
+        auto info = Info{*system};
+        const Info::Version& system_version = info.get_version().second;
+
+        // Print out the vehicle version information.
+        std::cout << system_version << std::endl;
+        return;
+    }
     cout << "Plane ID " << sysid << " has been loaded!" << endl;
     cout << "Information: " << endl;
     cout << "Latitude: " << latitude << " Longitude: " << longitude << " Altitude: " << altitude << endl;
@@ -226,9 +238,10 @@ bool plane::startFollowing() {
  * @param lat latitude
  * @param lon longitude
  * @param alt altitude
+ * @default alt 0.0f
+ * @return void
  */
 void plane::follow(double lat, double lon, float alt = 0.0f) const {
-    //auto follow_me = FollowMe{*system};
     cout << "Main plane location: " << latitude << " " << longitude << " " << altitude << "\n";
     cout << "Target plane location: " << lat << " " << lon << " " << alt << "\n";
     FollowMe::TargetLocation location;
@@ -243,8 +256,6 @@ void plane::follow(double lat, double lon, float alt = 0.0f) const {
  * @return false if failed
  */
 bool plane::stopFollowing() const {
-    //auto follow_me = FollowMe{*system};
-    // Stop following
     FollowMe::Result follow_me_result = followMe.stop();
     if (follow_me_result != FollowMe::Result::Success) {
         // handle stop failure (in this case print error)
@@ -306,6 +317,82 @@ double plane::getAirSpeed() const {
     Telemetry::VelocityNed velocity = telemetry.velocity_ned();
     return sqrt(velocity.east_m_s * velocity.east_m_s + velocity.north_m_s * velocity.north_m_s);
 }
+/**
+ * Check if the plane has a camera
+ * @param camera_id camera id
+ * @default camera_id -1
+ * @return true if has camera
+ * @return false if doesn't have camera
+ */
+bool plane::hasCamera(int camera_id = -1) const {
+    return system->has_camera(camera_id);
+}
+/**
+ * Set the camera mode
+ * @param mode camera mode
+ * @default mode Camera::Mode::Photo
+ * @return true if success
+ * @return false if failed
+ */
+bool plane::setCameraMode(Camera::Mode mode = Camera::Mode::Photo) {
+    Camera::Result result = camera.set_mode(mode);
+    if (Camera::Result::Success != result) {
+        cerr << "Setting camera mode failed: " << result << '\n';
+        return false;
+    }else {
+        cout << "Camera mode set to: " << mode << '\n';
+
+        // this can be made a separate function, but for simplicity, it's here
+        camera.subscribe_capture_info([](const Camera::CaptureInfo& capture_info) {
+            std::cout << "Image captured, stored at: " << capture_info.file_url << '\n';
+        });
+        return true;
+    }
+}
+/**
+ * Take a photo
+ * @return true if success
+ * @return false if failed
+ */
+bool plane::takePhoto() const {
+    const auto photo_result = camera.take_photo();
+    if (photo_result != Camera::Result::Success) {
+        std::cerr << "Taking Photo failed: " << photo_result;
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Start video recording
+ * @param stream bool to if you want to stream the video
+ * @param streamID int stream id
+ * @default stream false
+ * @return true if success
+ * @return false if failed
+ */
+bool plane::startVideo(bool stream = false, int streamID = -1) const {
+    Camera::Result operation_result = stream ? camera.start_video_streaming(streamID) : camera.start_video();
+    return operation_result == Camera::Result::Success;
+}
+/**
+ * Stop video recording
+ * @param stream bool to check if it was streaming
+ * @param streamID int stream id
+ * @default stream false
+ * @default streamID -1
+ * @return true if success
+ * @return false if failed
+ */
+bool plane::stopVideo(bool stream = false, int streamID = -1) const {
+    Camera::Result operation_result = stream ? camera.stop_video_streaming(streamID) : camera.stop_video();
+    return operation_result == Camera::Result::Success;
+}
+
+
+
+
+
 
 
 

@@ -59,6 +59,16 @@ public:
 
     bool isInAir() const;
 
+    bool hasCamera(int camera_id) const;
+
+    bool setCameraMode(Camera::Mode mode);
+
+    bool takePhoto() const;
+
+    bool startVideo(bool stream) const;
+
+    bool stopVideo(bool stream) const;
+
     double getLatitude() const {
         return latitude;
     };
@@ -71,8 +81,6 @@ public:
     double getLongitude() const {
         return longitude;
     };
-
-    void debug() const;
 
     [[nodiscard]] bool isMainPlane() const {
         return isMain;
@@ -87,6 +95,7 @@ public:
     Action action{*system};
     Offboard offboard{*system};
     FollowMe followMe{*system};
+    Camera camera{*system};
 
 private:
     int sysid{};
@@ -100,6 +109,12 @@ private:
 
     bool isMain;
 
+
+    bool startVideo(bool stream, int streamID) const;
+
+    bool stopVideo(bool stream, int streamID) const;
+
+    void debug(bool detailed) const;
 };
 
 

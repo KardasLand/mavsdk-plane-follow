@@ -21,7 +21,6 @@
 #include <iostream>
 #include <plugins/action/action.h>
 #include "TrackerMain.h"
-#include "cmath"
 #include "Teknofest.h"
 
 using namespace std;
@@ -32,10 +31,12 @@ using namespace mavsdk;
  * @param address string IP address of the udp connection
  * @param port int Port number of the udp connection
  */
-void TrackerMain::initialize(const string &address, int port = 3131) {
+void TrackerMain::initialize(const string &address, int port = 14550) {
     Mavsdk mavsdk{Mavsdk::Configuration{Mavsdk::ComponentType::GroundStation}};
     ConnectionResult connection_result = mavsdk.add_udp_connection(address, port);
 
+
+    /// If you don't need to check the health of the plane, you can override the check.
     bool overrideSafety = true;
 
     if (connection_result != ConnectionResult::Success) {
@@ -63,10 +64,10 @@ void TrackerMain::initialize(const string &address, int port = 3131) {
         return;
     }
 
-    // Check the health of the plane
-    // this is normally done in real life regardless of override safety
-    // But we are in a simulation, so we can override the safety.
-    // this is useful for testing, don't need to calibrate the plane every time
+    /// Check the health of the plane
+    /// this is normally done in real life regardless of override safety
+    /// But we are in a simulation, so we can override the safety.
+    /// this is useful for testing, don't need to calibrate the plane every time
     //if (!overrideSafety) {
     //    mainPlane->checkHealth();
     //}
