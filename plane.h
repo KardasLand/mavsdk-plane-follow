@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "modernize-use-nodiscard"
 // tracking - plane.h
 // Copyright (c) 2024 Neo Stellar Ltd.
 //
@@ -49,7 +51,7 @@ public:
 
     bool takeoff();
 
-    [[nodiscard]] bool land() const;
+    bool land() const;
 
     bool startFollowing();
 
@@ -65,9 +67,11 @@ public:
 
     bool takePhoto() const;
 
-    bool startVideo(bool stream) const;
+    bool startVideo(bool stream, int streamID) const;
 
-    bool stopVideo(bool stream) const;
+    bool stopVideo(bool stream, int streamID) const;
+
+    void debug(bool detailed) const;
 
     double getLatitude() const {
         return latitude;
@@ -78,20 +82,21 @@ public:
     };
 
     double getAirSpeed() const;
+
     double getLongitude() const {
         return longitude;
     };
 
-    [[nodiscard]] bool isMainPlane() const {
+    bool isMainPlane() const {
         return isMain;
     };
-    System *system;
-    Telemetry telemetry{*system};
 
     const Telemetry &getTelemetry() const {
         return telemetry;
     }
 
+    System *system;
+    Telemetry telemetry{*system};
     Action action{*system};
     Offboard offboard{*system};
     FollowMe followMe{*system};
@@ -104,18 +109,11 @@ private:
     double latitude{};
     double altitude{};
     double longitude{};
-
     void init();
-
     bool isMain;
-
-
-    bool startVideo(bool stream, int streamID) const;
-
-    bool stopVideo(bool stream, int streamID) const;
-
-    void debug(bool detailed) const;
 };
 
 
 #endif //TRACKING_PLANE_H
+
+#pragma clang diagnostic pop
